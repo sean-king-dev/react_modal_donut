@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React Modal with Donut Chart</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script>
+  const { useState, useEffect, useRef } = React;
+
+  // Modal Component
+  const Modal = ({ showModal, onClose, chartData }) => {
+    if (!showModal) return null;
+
+    return React.createElement('div', {
+      style: {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+      }
+    },
+      React.createElement('div', {
+        style: {
+          backgroundColor: 'white',
+          padding: '20px',
+          borderRadius: '8px',
+          width: '300px',
+          textAlign: 'center',
+        }
+      },
+        React.createElement('h2', null, 'Donut Chart in Modal'),
+        React.createElement('canvas', {
+          id: 'donutChart',
+          width: '250',
+          height: '250',
+        }),
+        React.createElement('button', {
+          onClick: onClose,
+          style: {
+            padding: '10px',
+            backgroundColor: '#007BFF',
+            color: 'white',
+            border: 'none',
+            borderRadius: '4px',
+            cursor: 'pointer',
+          }
+        }, 'Close')
+      )
+    );
+  };
+
+  // Donut Chart Drawing Function
+  const drawDonutChart = (canvas, data) => {
+    const ctx = canvas.getContext('2d');
+    const totalValue = data.reduce((acc, entry) => acc + entry.value, 0);
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const radius = 100;
+    const innerRadius = 60;
+    let startAngle = -Math.PI / 2; // Start from the top
+
+    data.forEach(entry => {
+      const sliceAngle = (entry.value / totalValue) * 2 * Math.PI;
+      const endAngle = startAngle + sliceAngle;
+
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+      ctx.lineTo(centerX, centerY);
+      ctx.fillStyle = entry.color;
+      ctx.fill();
+
+      startAngle = endAngle;
+    });
+
+    // Draw the inner circle to make it a donut chart
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, innerRadius, 0, 2 * Math.PI);
+    ctx.fillStyle = '#FFFFFF'; // Inner circle (white)
+    ctx.fill();
+  };
+
+  // Main App Component
+  const App = () => {
+    const [isModalOpen, setModalOpen] = useState(false);
+
+    const openModal = () => {
+      setModalOpen(true);
+    };
+
+    const closeModal = () => {
+      setModalOpen(false);
+    };
+
+    const chartData = [
+      { label: 'Category A', value: 400, color: '#0088FE' },
+      { label: 'Category B', value: 300, color: '#00C49F' },
+      { label: 'Category C', value: 200, color: '#FFBB28' },
+      { label: 'Category D', value: 100, color: '#FF8042' }
+    ];
+
+    useEffect(() => {
+      if (isModalOpen) {
+        const canvas = document.getElementById('donutChart');
+        drawDonutChart(canvas, chartData);
+      }
+    }, [isModalOpen]);
+
+    return React.createElement('div', {
+        style: {
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          flexDirection: 'column'
+        }
+      },
+      React.createElement('h1', null, 'React Modal with Donut Chart'),
+      React.createElement('button', {
+        onClick: openModal,
+        style: {
+          padding: '10px 20px',
+          backgroundColor: '#28a745',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+        }
+      }, 'Open Modal'),
+
+      React.createElement(Modal, {
+        showModal: isModalOpen,
+        onClose: closeModal,
+        chartData: chartData
+      })
+    );
+  };
+
+  // Render the App Component
+  ReactDOM.render(React.createElement(App), document.getElementById('root'));
+</script>
+
+</body>
+</html>
